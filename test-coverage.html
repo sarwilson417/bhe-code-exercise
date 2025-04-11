@@ -1,0 +1,386 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>bhe-code-exercise: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/sarwilson417/bhe-code-exercise/go/cmd/bhe-code-exercise/main.go (0.0%)</option>
+				
+				<option value="file1">github.com/sarwilson417/bhe-code-exercise/go/internal/handlers/handler.go (100.0%)</option>
+				
+				<option value="file2">github.com/sarwilson417/bhe-code-exercise/go/pkg/sieve/mock_sieve.go (100.0%)</option>
+				
+				<option value="file3">github.com/sarwilson417/bhe-code-exercise/go/pkg/sieve/sieve.go (100.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package main
+
+import (
+        "context"
+        "fmt"
+        "log"
+        "net/http"
+        "os"
+        "os/signal"
+        "syscall"
+        "time"
+
+        "github.com/sarwilson417/bhe-code-exercise/go/internal/handlers"
+        "github.com/sarwilson417/bhe-code-exercise/go/pkg/sieve"
+)
+
+const port = 8080
+
+func main() <span class="cov0" title="0">{
+    sieveService := sieve.NewSieve()
+        h := handlers.New(sieveService)
+    
+    mux := http.NewServeMux()
+    mux.HandleFunc("/primes", h.GetNthPrime)
+
+    srv := &amp;http.Server{
+        Addr:    fmt.Sprintf(":%v", port),
+        Handler: mux,
+        ReadTimeout:    10 * time.Second, 
+                WriteTimeout:   20 * time.Second, 
+                IdleTimeout:    15 * time.Second,
+    }
+
+    go func() </span><span class="cov0" title="0">{
+        log.Printf("Starting bhe-code-exercise on port %v", port)
+        if err := srv.ListenAndServe(); err != nil &amp;&amp; err != http.ErrServerClosed </span><span class="cov0" title="0">{
+            log.Fatalf("error running server: %v\n", err)
+        }</span>
+    }()
+
+    // Create a channel to listen for termination signals
+    <span class="cov0" title="0">sigChan := make(chan os.Signal, 1)
+    signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+    &lt;-sigChan
+
+    log.Println("Shutting down bhe-code-exercize...")
+
+    // Create a context with a timeout to allow 20 seconds for requests in progress to finish
+    ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+    defer cancel()
+
+    if err := srv.Shutdown(ctx); err != nil </span><span class="cov0" title="0">{
+        log.Fatalf("Error shutting down gracefully: %v", err)
+    }</span>
+
+    <span class="cov0" title="0">log.Println("Server shut down gracefully")</span>
+}</pre>
+		
+		<pre class="file" id="file1" style="display: none">package handlers
+
+import (
+        "encoding/json"
+        "errors"
+        "log"
+        "net/http"
+        "strconv"
+
+        "github.com/sarwilson417/bhe-code-exercise/go/pkg/sieve"
+)
+
+const (
+        maxN = 100000000
+        minN = 0
+)
+
+type Handlers struct {
+        SieveService sieve.Sieve
+}
+
+func New(sieveService sieve.Sieve) Handlers <span class="cov8" title="1">{
+        return Handlers{
+                SieveService: sieveService,
+        }
+}</span>
+
+type PrimesResponse struct {
+        Prime int64 `json:"nthPrime"`
+}
+
+func (h Handlers) GetNthPrime(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        params := r.URL.Query()
+        n := params.Get("n")
+
+        if r.Method != http.MethodGet </span><span class="cov8" title="1">{
+                http.Error(w, "method not supported", http.StatusMethodNotAllowed)
+
+                return
+        }</span>
+
+        <span class="cov8" title="1">if n == "" </span><span class="cov8" title="1">{
+                http.Error(w, "missing required query param 'n'", http.StatusBadRequest)
+
+                return
+        }</span>
+
+        <span class="cov8" title="1">num, err := convertToPositiveInt64(n)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Printf("error converting query param 'n' to int64: %v", err)
+                http.Error(w, "invalid value for query param 'n', must be in the range [0-100000000]", http.StatusBadRequest)
+
+                return
+        }</span>
+
+        <span class="cov8" title="1">nthPrime, err := h.SieveService.NthPrime(num)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Printf("error finding nth prime: %v", err)
+                http.Error(w, "error finding nth prime", http.StatusInternalServerError)
+                
+                return
+        }</span>
+
+        <span class="cov8" title="1">w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusOK)
+        json.NewEncoder(w).Encode(PrimesResponse{Prime: nthPrime})</span>
+}
+
+func convertToPositiveInt64(n string) (int64, error) <span class="cov8" title="1">{
+        num, err := strconv.ParseInt(n, 10, 64)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+        <span class="cov8" title="1">if num &lt; minN || num &gt; maxN </span><span class="cov8" title="1">{
+                return num, errors.New("value is outside allowed range")
+        }</span>
+
+        <span class="cov8" title="1">return num, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">// Code generated by MockGen. DO NOT EDIT.
+// Source: ./sieve.go
+//
+// Generated by this command:
+//
+//        mockgen -source ./sieve.go -destination ./mock_sieve.go -package sieve
+//
+
+// Package sieve is a generated GoMock package.
+package sieve
+
+import (
+        reflect "reflect"
+
+        gomock "go.uber.org/mock/gomock"
+)
+
+// MockSieve is a mock of Sieve interface.
+type MockSieve struct {
+        ctrl     *gomock.Controller
+        recorder *MockSieveMockRecorder
+        isgomock struct{}
+}
+
+// MockSieveMockRecorder is the mock recorder for MockSieve.
+type MockSieveMockRecorder struct {
+        mock *MockSieve
+}
+
+// NewMockSieve creates a new mock instance.
+func NewMockSieve(ctrl *gomock.Controller) *MockSieve <span class="cov8" title="1">{
+        mock := &amp;MockSieve{ctrl: ctrl}
+        mock.recorder = &amp;MockSieveMockRecorder{mock}
+        return mock
+}</span>
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockSieve) EXPECT() *MockSieveMockRecorder <span class="cov8" title="1">{
+        return m.recorder
+}</span>
+
+// NthPrime mocks base method.
+func (m *MockSieve) NthPrime(n int64) (int64, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "NthPrime", n)
+        ret0, _ := ret[0].(int64)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// NthPrime indicates an expected call of NthPrime.
+func (mr *MockSieveMockRecorder) NthPrime(n any) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NthPrime", reflect.TypeOf((*MockSieve)(nil).NthPrime), n)
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package sieve
+
+import (
+        "errors"
+        "math"
+)
+
+//go:generate mockgen -source ./$GOFILE -destination ./mock_$GOPACKAGE.go -package $GOPACKAGE
+
+// import "math"
+
+type Sieve interface {
+        NthPrime(n int64) (int64, error)
+}
+
+type SieveService struct{}
+
+func NewSieve() Sieve <span class="cov8" title="1">{
+        return SieveService{}
+}</span>
+
+func (s SieveService) NthPrime(n int64) (int64, error) <span class="cov8" title="1">{
+        if n &lt; 0 </span><span class="cov8" title="1">{
+                return 0, errors.New("invalid input")
+        }</span>
+
+        <span class="cov8" title="1">if n == 0 </span><span class="cov8" title="1">{
+                return 2, nil
+        }</span>
+
+        //start with an estimated limit and increase if needed
+        <span class="cov8" title="1">limit := estimateLimit(n)
+        primes := []int64{}
+
+        for </span><span class="cov8" title="1">{
+                primes = findPrimes(limit)
+                if int64(len(primes)) &gt; n </span><span class="cov8" title="1">{
+                        return primes[n], nil
+                }</span>
+                // if we did not go high enough to find the nth prime, up the limit and try again
+                <span class="cov8" title="1">limit = int64(float64(limit) * 1.2)</span>
+        }
+}
+
+func findPrimes(limit int64) []int64 <span class="cov8" title="1">{
+        isComposite := make([]bool, limit) // all marked as false by default, composite will be marked as true
+        isComposite[0] = true
+        isComposite[1] = true
+
+        // mark multiples of 2 as composite (except 2 itself)
+        for i := int64(2); i &lt; limit; i += 2 </span><span class="cov8" title="1">{
+                if i != 2 </span><span class="cov8" title="1">{
+                        isComposite[i] = true
+                }</span>
+        }
+
+        // since we already marked all even numbers except for 2 as composites, we can loop through only odd numbers to check for primes
+        <span class="cov8" title="1">for i := int64(3); i*i &lt; limit; i += 2 </span><span class="cov8" title="1">{
+                if !isComposite[i] </span><span class="cov8" title="1">{ // if number is prime, mark all (non-even) multiples of that number as composite
+                        for j := int64(i * i); j &lt; limit; j += 2 * i </span><span class="cov8" title="1">{
+                                isComposite[j] = true
+                        }</span>
+                }
+        }
+        <span class="cov8" title="1">primes := []int64{}
+        for i := int64(0); i &lt; int64(len(isComposite)); i++ </span><span class="cov8" title="1">{
+                if !isComposite[i] </span><span class="cov8" title="1">{
+                        primes = append(primes, i)
+                }</span>
+        }
+        <span class="cov8" title="1">return primes</span>
+}
+
+func estimateLimit(n int64) int64 <span class="cov8" title="1">{
+        if n &lt; 6 </span><span class="cov8" title="1">{
+                return int64(15)
+        }</span>
+        // using n * log(n) + n * log(log(n)) as a rough approximation
+        <span class="cov8" title="1">estimate := float64(n)*math.Log(float64(n)) + float64(n)*math.Log(math.Log(float64(n)))
+        return int64(estimate)</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

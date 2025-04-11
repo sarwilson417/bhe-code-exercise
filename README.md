@@ -1,40 +1,41 @@
-# BHE Software Engineer Coding Exercise
+# BHE Software Engineer Coding Exercise [![SemVer](https://img.shields.io/badge/Version-1.0.0-green.svg?cacheSeconds=2592000)](https://semver.org) [![gopherbadger-tag-do-not-edit](https://img.shields.io/badge/Test%20Coverage-79.5%25-green.svg?cacheSeconds=2592000)](test-coverage.html)
 
 ## The Sieve of Eratosthenes
+This API uses a variation of the Sieve of Eratosthenes algorithm to find and return the Nth prime number. It runs on port 8080 and provides a single endpoint that takes a query parameter n, which represents the position of the prime number you want. Please note that counting starts at 0, so n=0 returns the first prime number, which is 2.
 
-Prime numbers have many modern day applications and a long history in 
-mathematics. Utilizing your own resources, research the sieve of Eratosthenes,
-an algorithm for generating prime numbers. Based on your research, implement 
-an API that allows the caller to retrieve the Nth prime number.
-Some stub code and a test suite have been provided as a convenience. However, 
-you are encouraged to deviate from Eratosthenes's algorithm, modify the 
-existing functions/methods, or anything else that might showcase your ability; 
-provided the following requirements are satisfied.
+Example call:
 
-You must author your work in Go, JavaScript/TypeScript, Python, or C# - all 
-other language submissions will be rejected. Stub code has been provided, so 
-please choose from one of the provided language stubs that is most 
-relevant to your skill set and the position you are applying for.
+`http://localhost:8080/primes?n=0`
 
-### Requirements
+Example response:
+```json 
+{
+  "nthPrime: 2
+}
+```
 
-- Fork this repo to implement your solution
-- The library package provides an API for retrieving the Nth prime number using 0-based indexing where the 0th prime number is 2
-- Interviewers must be able to execute a suite of tests
-  - Go: `go test ./...`
-  - C#: `dotnet test Sieve.Tests`
-  - Javascript: `npm run test`
-  - Python: `python -m unittest test_sieve.py`
-- Your solution is committed to your project's `main` branch, no uncommitted changes or untracked files please
-- Submit the link to your public fork for review
 
-### Considerations
+## Running the Project
 
-You may add more tests or restructure existing tests, but you may NOT change or remove
-the existing test outcomes; eg- f(0)=2, f(19)=71, f(99)=541, ..., f(10000000)=179424691 
+Clone the project
+```bash
+git clone https://github.com/sarwilson417/bhe-code-exercise.git
+```
 
-During the technical interview, your submission will be discussed, and you will be evaluated in the following areas:
+Install dependencies
+```bash
+go mod tidy
+```
+Run the application:
+```bash
+make run
+```
+Run tests:
+```bash
+make test
+```
 
-- Technical ability
-- Communication skills
-- Work habits and complementary skills
+## Project Layout
+- [cmd/bhe-code-exercise](./cmd/bhe-code-exercise): contains code to start up the project
+- [internal](./internal): contains code specific to this project such as handlers
+- [pkg](./pkg): contains packages that can be shared
